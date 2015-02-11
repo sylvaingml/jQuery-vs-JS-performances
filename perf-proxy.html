@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	  <title>Testing $.proxy performances.</title>
+	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	</head>
+
+<body>
+
+<p>Simple test for proxy performances in jQuery.</p>
+
+<button onclick="runAll()">Run all</button>
+
+<h2>Direct call</h2>
+
+<p>Duration: <span id="valueDirect"></span></p>
+<button onclick="runDirect()">Run</button>
+
+<h2>Inline $.proxy()</h2>
+
+<p>Duration: <span id="valueProxy"></span></p>
+<button onclick="runProxy()">Run</button>
+
+<h2>Cached $.proxy()</h2>
+
+<p>Duration: <span id="valueProxy2"></span></p>
+<button onclick="runProxy2()">Run</button>
+
+<h2>Wrapper function</h2>
+
+<p>Duration: <span id="valueFn"></span></p>
+<button onclick="runFn()">Run</button>
+
+</body>
+
+<script>
+
+function chronoTime(destId, fn) {
+  var $dest = $('#'+destId);
+  
+  $dest.html('...');
+  var beginTS  = new Date().getTime();
+  
+  for ( var idx = 0 ; idx < 500000 ; ++idx ) {
+	fn();
+  }
+  
+  var endTS = new Date().getTime();
+  
+  var duration = endTS - beginTS;
+  
+  $dest.html(duration + ' ms');
+}
+
+function Point() {
+  this.x = 0.0;
+  this.y = 0.0;
+}
+
+Point.prototype.dist = function(otherPoint) {
+  var dX = (this.x - otherPoint.x);
+  var dY = (this.y - otherPoint.y);
+  
+  d = Math.sqrt((dX * dX) + (dY * dY));
+  
+  return d;
+};
+
+// TESTS
+
+var p1 = new Point(0, 0);
+var p2 = new Point(3, 12);
+
+function runAll() {
+	runDirect();
+	runProxy();
+	runProxy2();
+	runFn();
+}
+
+
+function runDirect() {
+	chronoTime('valueDirect', function() { p1.dist(p2); });
+}
+
+function runProxy() {
+	chronoTime('valueProxy', function() { $.proxy(p1.dist, p1)(p2); });
+}
+
+function runProxy2() {
+	var proxyFn = $.proxy(p1.dist, p1);
+	chronoTime('valueProxy2', function() { proxyFn(p2); });
+}
+
+function runFn() {
+	var pt = p1; // Capture p1
+	chronoTime('valueFn', function() {
+		pt.dist(p2);
+	}
+	);
+}
+
+
+</script>
+
+</html>

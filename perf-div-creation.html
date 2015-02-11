@@ -1,0 +1,200 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	  <title>Testing $('<div>') performances.</title>
+	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	</head>
+
+<body>
+
+<h2>Test scenarios</h2>
+
+<p>Simple test for div creation performances in jQuery.</p>
+
+<button onclick="runAll()">Run all</button>
+<button onclick="runBench()">Run bench</button>
+
+<h3>JavaScript creation</h3>
+
+<p><button onclick="runJS()">Run</button>
+	Duration: <span id="valueJS"></span>
+</p>
+
+
+<h3>JavaScript with attributes creation</h3>
+
+<p><button onclick="runJSAttr()">Run</button> 
+	Duration: <span id="valueJSAttr"></span>
+</p>
+
+
+<h3>Simple creation</h3>
+
+<p><button onclick="runSimple()">Run</button>
+	Duration: <span id="valueDirect"></span>
+</p>
+
+
+<h3>Creation with inline attributes</h3>
+
+<p><button onclick="runInlineAttr()">Run</button>
+	Duration: <span id="valueInlineAttr"></span>
+</p>
+
+
+<h3>Creation with structured attributes</h3>
+
+<p><button onclick="runStructuredAttr()">Run</button>
+	Duration: <span id="valueStructuredAttr"></span>
+</p>
+
+
+<hr>
+
+<h2>Results</h2>
+
+<table id="results">
+	<thead>
+		<tr>
+			<th>Run</th>
+			<th>JavaScript, no attribute</th>
+			<th>JavaScript, set attribute</th>
+			<th>jQuery, tag only</th>
+			<th>jQuery, attribute in tag</th>
+			<th>jQuery, attributes as object</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+
+<hr>
+
+<div id="container"></div>
+
+</body>
+
+<script>
+
+/** Add a row in the list of result values.
+ */
+function recordResultSet(tableId, resultSet) {
+	var $tbody = $('tbody', "#"+tableId);
+	var nbRows = $('tr', $tbody).length;
+	
+	var rowIdx = 1+nbRows;
+	var $row = $('<tr>');
+	
+	var $countCell = $('<th>'); 
+	$countCell.html(rowIdx);
+	
+	$row.append($countCell);
+	
+	for ( var idx = 0 ; idx < resultSet.length ; ++idx ) {
+		var $cell = $('<td>');
+		$cell.html( resultSet[idx] );
+		$row.append($cell);
+	}
+	
+	$tbody.append($row);
+};
+
+
+
+function chronoTime(destId, fn) {
+  var $dest = $('#'+destId);
+  
+  $dest.html('...');
+  var beginTS  = new Date().getTime();
+  
+  for ( var idx = 0 ; idx < 10000 ; ++idx ) {
+	fn();
+  }
+  
+  var endTS = new Date().getTime();
+  
+  var duration = endTS - beginTS;
+  
+  $dest.html(duration + ' ms');
+  
+  return duration;
+}
+
+// TESTS
+
+var runCount = 0;
+
+function runAll() {
+	var resultSet = [
+		runJS(),
+		runJSAttr(),
+		runSimple(),
+		runInlineAttr(),
+		runStructuredAttr()
+	];
+	
+	recordResultSet('results', resultSet);
+}
+
+function runBench() {
+	for ( var run = 0 ; run < 50 ; ++run ) {
+		runAll();
+	}
+};
+
+// Root container to create elements
+var $container = $('#container');
+
+function runJS() {
+	$container.empty();
+	var elem = [];
+	return chronoTime('valueJS', function() { 
+		var newDiv = document.createElement('div');
+		elem.push(newDiv);
+	});
+}
+
+function runJSAttr() {
+	$container.empty();
+	var elem = [];
+	return chronoTime('valueJSAttr', function() { 
+		var newDiv = document.createElement('div');
+		newDiv.setAttribute('class', 'dummy');
+		elem.push(newDiv);
+	});
+}
+
+function runSimple() {
+	$container.empty();
+	var elem = [];
+	return chronoTime('valueDirect', function() { 
+		var $newDiv = $("<div>");
+		elem.push($newDiv);
+	});
+}
+
+function runInlineAttr() {
+	$container.empty();
+	var elem = [];
+	return chronoTime('valueInlineAttr', function() { 
+		var $newDiv = $("<div class='dummy'>");
+		elem.push($newDiv);
+	});
+}
+
+function runStructuredAttr() {
+	$container.empty();
+	var elem = [];
+	return chronoTime('valueStructuredAttr', function() { 
+		var $newDiv = $("<div>", { 
+			class: 'dummy' 
+		});
+		elem.push($newDiv);
+	});
+}
+
+
+</script>
+
+</html>

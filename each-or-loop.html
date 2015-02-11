@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	  <title>Testing $.each performances.</title>
+	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	</head>
+
+<body>
+
+<p>Looping through DOM element and replacing value.</p>
+
+<button onclick="javascript: runTest();" type="button" >Run test</button>
+
+<h1>DOM Transformation</h1>
+
+<h2>$.each()</h2>
+
+<p>Duration was: <span id="jQDuration">(not run)</span>.</p>
+
+<h2>Native <tt>for</tt> loop</h2>
+
+<p>Duration was: <span id="jsDuration">(not run)</span>.</p>
+
+
+<h1>Simple loop</h1>
+
+<h2>$.each()</h2>
+
+<p>Duration was: <span id="jQDuration2">(not run)</span>.</p>
+
+<h2>Native <tt>for</tt> loop</h2>
+
+<p>Duration was: <span id="jsDuration2">(not run)</span>.</p>
+
+
+<div id="placeholder" >
+</div>
+
+</body>
+
+<script>
+
+function chronoTime(destId, fn) {
+  var $dest = $('#'+destId);
+  
+  $dest.html('...');
+  var beginTS  = new Date().getTime();
+  
+  fn();
+  
+  var endTS = new Date().getTime();
+  
+  var duration = endTS - beginTS;
+  
+  $dest.html(duration + ' ms');
+}
+
+
+function jqTestDOM() {
+	var $list = $('#placeholder > div');
+
+	$.each($list, function(idx) {
+		var $this = $( this );
+		$this.html(idx);
+	});
+};
+
+function jsTestDOM() {
+	var $list = $('#placeholder > div');
+
+	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
+		$( $list[ idx ] ).html(idx);
+	}
+};
+
+function jqTestSimple() {
+	var $list = $('#placeholder > div');
+
+	$.each($list, function() {
+		$(this).height();
+	});
+};
+
+function jsTestSimple() {
+	var $list = $('#placeholder > div');
+
+	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
+		$( $list[ idx ] ).height();
+	}
+};
+
+
+
+function runTest() {
+  // Create some DOM elements to loop on
+  var $placeholder = $('#placeholder');
+  $placeholder.html('');
+  for ( var idx = 0 ; idx < 10000 ; ++idx ) {
+	$placeholder.append("<div>"+idx+"</div>");
+  }
+  
+  chronoTime('jQDuration', jqTestDOM);
+  chronoTime('jsDuration', jsTestDOM);
+  chronoTime('jQDuration2', jqTestSimple);
+  chronoTime('jsDuration2', jsTestSimple);
+}
+  
+</script>
+
+<style>
+#placeholder span {
+  margin-right: 1em;
+}
+</style>
+
+</html>
