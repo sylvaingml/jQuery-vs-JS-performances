@@ -4,6 +4,7 @@
 	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	  <title>Testing $('<div>') performances.</title>
 	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	  <script src="js/mesure-kit.js"></script>
 	</head>
 
 <body>
@@ -102,25 +103,6 @@ function recordResultSet(tableId, resultSet) {
 
 
 
-function chronoTime(destId, fn) {
-  var $dest = $('#'+destId);
-  
-  $dest.html('...');
-  var beginTS  = new Date().getTime();
-  
-  for ( var idx = 0 ; idx < 10000 ; ++idx ) {
-	fn();
-  }
-  
-  var endTS = new Date().getTime();
-  
-  var duration = endTS - beginTS;
-  
-  $dest.html(duration + ' ms');
-  
-  return duration;
-}
-
 // TESTS
 
 var runCount = 0;
@@ -145,6 +127,7 @@ function runBench() {
 
 // Root container to create elements
 var $container = $('#container');
+var nbLoop = 10000;
 
 function runJS() {
 	$container.empty();
@@ -152,7 +135,7 @@ function runJS() {
 	return chronoTime('valueJS', function() { 
 		var newDiv = document.createElement('div');
 		elem.push(newDiv);
-	});
+	}, nbLoop);
 }
 
 function runJSAttr() {
@@ -162,7 +145,7 @@ function runJSAttr() {
 		var newDiv = document.createElement('div');
 		newDiv.setAttribute('class', 'dummy');
 		elem.push(newDiv);
-	});
+	}, nbLoop);
 }
 
 function runSimple() {
@@ -171,7 +154,7 @@ function runSimple() {
 	return chronoTime('valueDirect', function() { 
 		var $newDiv = $("<div>");
 		elem.push($newDiv);
-	});
+	}, nbLoop);
 }
 
 function runInlineAttr() {
@@ -180,7 +163,7 @@ function runInlineAttr() {
 	return chronoTime('valueInlineAttr', function() { 
 		var $newDiv = $("<div class='dummy'>");
 		elem.push($newDiv);
-	});
+	}, nbLoop);
 }
 
 function runStructuredAttr() {
@@ -191,7 +174,7 @@ function runStructuredAttr() {
 			class: 'dummy' 
 		});
 		elem.push($newDiv);
-	});
+	}, nbLoop);
 }
 
 
