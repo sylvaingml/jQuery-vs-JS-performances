@@ -4,6 +4,7 @@
 	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	  <title>Testing $.proxy performances.</title>
 	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+          <script src="./js/mesure-kit.js"></script>
 	</head>
 
 <body>
@@ -36,28 +37,20 @@
 
 <script>
 
-function chronoTime(destId, fn) {
-  var $dest = $('#'+destId);
-  
-  $dest.html('...');
-  var beginTS  = new Date().getTime();
-  
-  for ( var idx = 0 ; idx < 500000 ; ++idx ) {
-	fn();
-  }
-  
-  var endTS = new Date().getTime();
-  
-  var duration = endTS - beginTS;
-  
-  $dest.html(duration + ' ms');
-}
-
+/** Simple point object.
+ * 
+ * @returns {Point}
+ */
 function Point() {
   this.x = 0.0;
   this.y = 0.0;
 }
 
+/** Compute distance with another point.
+ * 
+ * @param {Point} otherPoint
+ * @returns {float}
+ */
 Point.prototype.dist = function(otherPoint) {
   var dX = (this.x - otherPoint.x);
   var dY = (this.y - otherPoint.y);
@@ -72,34 +65,36 @@ Point.prototype.dist = function(otherPoint) {
 var p1 = new Point(0, 0);
 var p2 = new Point(3, 12);
 
-function runAll() {
-	runDirect();
-	runProxy();
-	runProxy2();
-	runFn();
-}
+var bench = new Bench({ nbLoop: 10000 });
 
+var proxyFn = $.proxy(p1.dist, p1);
 
-function runDirect() {
-	chronoTime('valueDirect', function() { p1.dist(p2); });
-}
+bench.addTest('valueDirect', function() { 
+    p1.dist(p2); 
+});
 
-function runProxy() {
-	chronoTime('valueProxy', function() { $.proxy(p1.dist, p1)(p2); });
-}
+bench.addTest('valueProxy', function() { 
+    $.proxy(p1.dist, p1)(p2); 
+});
 
-function runProxy2() {
-	var proxyFn = $.proxy(p1.dist, p1);
-	chronoTime('valueProxy2', function() { proxyFn(p2); });
-}
+bench.addTest('valueProxy2', function() { 
+    proxyFn(p2); 
+});
 
-function runFn() {
-	var pt = p1; // Capture p1
-	chronoTime('valueFn', function() {
-		pt.dist(p2);
-	}
-	);
-}
+var pt = p1; // Capture p1
+bench.addTest('valueFn', function() { 
+    pt.dist(p2);
+});
+
+function runAll() { bench.runAllTests(); }
+
+function runDirect() { bench.runTest("valueDirect"); };
+
+function runProxy()  { bench.runTest("valueProxy"); };
+
+function runProxy2() { bench.runTest("valueProxy2"); };
+
+function runFn()     { bench.runTest("valueFn"); };
 
 
 </script>

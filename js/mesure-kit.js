@@ -42,6 +42,8 @@ function chronoTime(destId, fn, nbLoop)
  * @returns {undefined}
  */
 function Bench(options) {
+    options = $.extend({}, options);
+    
     // Track options
     this.nbLoop = options['nbLoop'] || 10; // Number of loop in a single run
     
@@ -75,7 +77,7 @@ Bench.prototype.saveResult = function(id, duration) {
  * @returns {int}
  *  Duration of the nbLoop runs in milliseconds.
  */
-Bench.prototype.addTest = function(id, setupFn, bodyFn, cleanupFn) {
+Bench.prototype.addTest = function(id, bodyFn, setupFn, cleanupFn) {
     this.registeredTest[ id ] = {
         setup: setupFn,
         body: bodyFn,
