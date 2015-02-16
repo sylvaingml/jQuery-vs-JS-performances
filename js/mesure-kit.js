@@ -1,39 +1,7 @@
-
-/** Simple function to perform rough timing of a function.
-
-	@param destId
-		Identifier of the element to be fille with duration output.
-                This identifier also identify the test in a Bench object.
-	@param fn
-		Closure to evaluate in the loop
-	@param nbLoop
-		Number of iteration to perform. Default is 10.
-
-	@return Duration of the run (user time)
-
- */
-function chronoTime(destId, fn, nbLoop) 
-{
-	if ( !nbLoop ) { nbLoop = 10 }
-  	var $dest = $('#'+destId);
-  
-  	$dest.html('...');
-  	var beginTS  = new Date().getTime();
-  
-  	for ( var idx = 0 ; idx < nbLoop ; ++idx ) {
-		fn();
-  	}
-  
-  	var endTS = new Date().getTime();
-  
-  	var duration = endTS - beginTS;
-  
-  $dest.html(duration + ' ms');
-  
-  return duration;
-};
-
-
+// --------------------
+// Mesure-Kit
+// 
+// Sylvain Gamel, 2015 - Public domain
 // --------------------
 
 /** Create a bench of tests.
@@ -57,6 +25,40 @@ function Bench(options) {
     
     this.registeredTest = { };
 };
+
+
+/** Simple function to perform rough timing of a function.
+
+	@param destId
+		Identifier of the element to be fille with duration output.
+                This identifier also identify the test in a Bench object.
+	@param fn
+		Closure to evaluate in the loop
+	@param nbLoop
+		Number of iteration to perform. Default is 10.
+
+	@return Duration of the run (user time)
+
+ */
+Bench.prototype.chronoTime = function(destId, fn, nbLoop) {
+    if ( !nbLoop ) { nbLoop = 10; }
+    var $dest = $('#' + destId);
+  
+    $dest.html('...');
+    var beginTS  = new Date().getTime();
+    
+    for ( var idx = 0 ; idx < nbLoop ; ++idx ) {
+        fn();
+    }
+    
+    var endTS = new Date().getTime();
+    var duration = endTS - beginTS;
+    
+    $dest.html(duration + ' ms');
+    
+    return duration;
+};
+
 
 Bench.prototype.saveResult = function(id, duration) {
     var resultList = this.runResult[ id ] || [];
@@ -215,7 +217,7 @@ Bench.prototype.runTest = function(id) {
     
     if ( 'function' === typeof theTest.setup   ) { theTest.setup(); }
     if ( 'function' === typeof theTest.body    ) { 
-        duration = chronoTime(id, theTest.body, this.nbLoop);
+        duration = this.chronoTime(id, theTest.body, this.nbLoop);
         this.saveResult(id, duration);
     }
     if ( 'function' === typeof theTest.cleanup ) { theTest.cleanup(); }
