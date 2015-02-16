@@ -31,20 +31,25 @@
         <table class="table">
             <tbody>
                 <tr>
-                    <th>Direct call </th>
-                    <td>Duration: <span id="valueDirect"></span></td>
+                    <th>Direct call in closure</th>
+                    <td>Duration: <span id="closure-direct"></span></td>
                     <td><button class="btn btn-xs btn-primary" onclick="runDirect()">Run</button></td>
                 </tr>
 
                 <tr>
+                    <th>Closure with captured indirect reference</th>
+                    <td>Duration: <span id="closure-with-capture"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runFn()">Run</button></td>
+                </tr>
+                <tr>
                     <th>Inline $.proxy()</th>
-                    <td>Duration: <span id="valueProxy"></span></td>
+                    <td>Duration: <span id="proxy-inlined"></span></td>
                     <td><button class="btn btn-xs btn-primary" onclick="runProxy()">Run</button></td>
                 </tr>
 
                 <tr>
                     <th>Cached $.proxy()</th>
-                    <td>Duration: <span id="valueProxy2"></span></td>
+                    <td>Duration: <span id="proxy-cached"></span></td>
                     <td><button class="btn btn-xs btn-primary" onclick="runProxy2()">Run</button></td>
                 </tr>
 
@@ -97,19 +102,25 @@ Point.prototype.dist = function(otherPoint) {
 var p1 = new Point(0, 0);
 var p2 = new Point(3, 12);
 
-var bench = new Bench({ nbLoop: 10000, summaryId: "summary" });
+var bench = new Bench({ nbLoop: 20000, summaryId: "summary" });
 
 var proxyFn = $.proxy(p1.dist, p1);
 
-bench.addTest('valueDirect', function() { 
+bench.addTest('closure-direct', function() { 
     p1.dist(p2); 
 });
 
-bench.addTest('valueProxy', function() { 
+var pt = p1; // Capture p1
+bench.addTest('closure-with-capture', function() { 
+    pt.dist(p2);
+});
+
+bench.addTest('proxy-inlined', function() { 
     $.proxy(p1.dist, p1)(p2); 
 });
 
-bench.addTest('valueProxy2', function() { 
+var proxyFn = $.proxy(p1.dist, p1);
+bench.addTest('proxy-cached', function() { 
     proxyFn(p2); 
 });
 
@@ -128,13 +139,13 @@ function runBench() {
     bench.insertSummaryTable();
 };
 
-function runDirect() { bench.runTest("valueDirect"); };
+function runDirect() { bench.runTest("closure-direct"); };
 
-function runProxy()  { bench.runTest("valueProxy"); };
+function runFn()     { bench.runTest("closure-with-capture"); };
 
-function runProxy2() { bench.runTest("valueProxy2"); };
+function runProxy()  { bench.runTest("proxy-inlined"); };
 
-function runFn()     { bench.runTest("valueFn"); };
+function runProxy2() { bench.runTest("proxy-cached"); };
 
 
 </script>
