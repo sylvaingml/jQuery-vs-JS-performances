@@ -46,10 +46,14 @@ function Bench(options) {
     
     // Track options
     this.nbLoop = options['nbLoop'] || 10; // Number of loop in a single run
-    
+
+    this.summaryContainerId = options['summaryId'];
+
     // Each run will be stored in this table in a map indexed by test id
     // this.runResult[ testId ] = [ durationRun1, durationRun2, ... ]
     this.runResult = { };
+    // Map a test id to the average time for a run
+    this.runAverage = { }; 
     
     this.registeredTest = { };
 };
@@ -57,8 +61,117 @@ function Bench(options) {
 Bench.prototype.saveResult = function(id, duration) {
     var resultList = this.runResult[ id ] || [];
     resultList.push(duration);
+    
+    this.runResult[ id ] = resultList;
 };
 
+
+Bench.prototype.computeAverage = function(id) {
+    var resultList = this.runResult[ id ] || [];
+    var value = 0;
+    for ( var idx = 0; idx < resultList.length ; ++idx ) {
+        var duration = resultList[ idx ];
+        value += duration;
+    }
+    
+    if ( resultList.length ) {
+        value = value / resultList.length;
+        this.runAverage[id] = value;
+    }
+    else {
+        value = undefined;
+    }
+    
+    return value;
+};
+
+Bench.prototype.getTestIdList = function() {
+    var testIds = [];
+    
+    for ( var testId in this.registeredTest ) {
+        testIds.push(testId);
+    }
+    
+    return testIds.sort();
+};
+
+Bench.prototype.buildRunRow = function(keyList, row) {
+    var html = "<tr>";
+    for ( var idx = 0 ; idx < keyList.length ; ++idx ) {
+        var testId = keyList[ idx ];
+        var runDuration = this.runResult[ testId ][ row ];
+        if ( 'undefined' === typeof runDuration ) {
+            runDuration = '-';
+        }
+        html += "<td>" + runDuration + "</td>";
+    }
+    html += "</tr>";
+    
+    return html;
+};
+
+Bench.prototype.buildHeaderRow = function(keyList) {
+    var html = "<tr>";
+    for ( var idx = 0 ; idx < keyList.length ; ++idx ) {
+        var testId = keyList[ idx ];
+        html += "<th>" + testId + "</th>";
+    }
+    html += "</tr>";
+    
+    return html;
+};
+
+Bench.prototype.buildFooterRow = function(keyList) {
+    var html = "<tr class='success'>";
+    for ( var idx = 0 ; idx < keyList.length ; ++idx ) {
+        var testId = keyList[ idx ];
+        var time = this.computeAverage(testId);
+        if ( 'undefined' === typeof time ) {
+            time = '/';
+        }
+        else {
+            time = time.toFixed(4)
+        }
+        
+        html += "<td>" + time + "</td>";
+    }
+    html += "</tr>";
+    
+    return html;
+};
+
+Bench.prototype.buildSummaryTable = function() {
+    var keyList = this.getTestIdList();
+    
+    var html = "<table class='table table-striped'>"
+    + "<thead>" + this.buildHeaderRow(keyList) + "</thead>";
+    + "<tbody>";
+    
+    var nbRun = 0;
+    for ( var testId in this.runResult ) {
+        nbRun = Math.max(nbRun, this.runResult[testId].length);
+    }
+    
+    for ( var row = 0 ; row < nbRun ; ++row ) {
+        html += this.buildRunRow(keyList, row);
+    }
+    
+    html += "</tbody>"
+          + "<tfoot>" + this.buildFooterRow(keyList) + "</tfoot>"
+          + "</table>";
+  
+    return $( html );
+};
+
+Bench.prototype.insertSummaryTable = function() {
+    if ( this.summaryContainerId ) {
+        var $summary = $('#'+this.summaryContainerId);
+        var $table = this.buildSummaryTable();
+        
+        $summary.empty();
+        $summary.append($table);
+    }
+};
 
 /** Register a new test.
  * 
@@ -137,7 +250,9 @@ Bench.prototype.runAllTests = function() {
  * 
  */
 Bench.prototype.runBench = function(nbRun) {
-    for ( var runIdx = 0 ; runIdx < nbRun ; ++runId ) {
+    for ( var runIdx = 0 ; runIdx < nbRun ; ++runIdx ) {
         this.runAllTests();
     }
 };
+
+

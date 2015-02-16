@@ -1,37 +1,69 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	  <title>Testing $.proxy performances.</title>
-	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-          <script src="./js/mesure-kit.js"></script>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>Testing $.proxy performances.</title>
+            <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+            <script src="./js/mesure-kit.js"></script>
 	</head>
 
 <body>
 
-<p>Simple test for proxy performances in jQuery.</p>
+    <section class="container">
+        
+        <h1>Proxy compared to inline closures</h1>
+        <p>Simple test for proxy performances in jQuery.</p>
 
-<button onclick="runAll()">Run all</button>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <button class="btn btn-primary" onclick="runAll()">Run all</button>
+                <button class="btn btn-warning" onclick="runBench()">Run a bench</button>
+            </div>
+        </div>
 
-<h2>Direct call</h2>
+    </section>
+    
+    <section class="container">
+        <h2>Tests</h2>
+        
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Direct call </th>
+                    <td>Duration: <span id="valueDirect"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runDirect()">Run</button></td>
+                </tr>
 
-<p>Duration: <span id="valueDirect"></span></p>
-<button onclick="runDirect()">Run</button>
+                <tr>
+                    <th>Inline $.proxy()</th>
+                    <td>Duration: <span id="valueProxy"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runProxy()">Run</button></td>
+                </tr>
 
-<h2>Inline $.proxy()</h2>
+                <tr>
+                    <th>Cached $.proxy()</th>
+                    <td>Duration: <span id="valueProxy2"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runProxy2()">Run</button></td>
+                </tr>
 
-<p>Duration: <span id="valueProxy"></span></p>
-<button onclick="runProxy()">Run</button>
+                <tr>
+                    <th>Wrapper function</th>
+                    <td>Duration: <span id="valueFn"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runFn()">Run</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
 
-<h2>Cached $.proxy()</h2>
 
-<p>Duration: <span id="valueProxy2"></span></p>
-<button onclick="runProxy2()">Run</button>
+    <section class="container">
+        <h2>Summary</h2>
+        
+        <section id="summary"></section>
 
-<h2>Wrapper function</h2>
-
-<p>Duration: <span id="valueFn"></span></p>
-<button onclick="runFn()">Run</button>
+    </section>
 
 </body>
 
@@ -65,7 +97,7 @@ Point.prototype.dist = function(otherPoint) {
 var p1 = new Point(0, 0);
 var p2 = new Point(3, 12);
 
-var bench = new Bench({ nbLoop: 10000 });
+var bench = new Bench({ nbLoop: 10000, summaryId: "summary" });
 
 var proxyFn = $.proxy(p1.dist, p1);
 
@@ -86,7 +118,15 @@ bench.addTest('valueFn', function() {
     pt.dist(p2);
 });
 
-function runAll() { bench.runAllTests(); }
+function runAll() { 
+    bench.runAllTests(); 
+    bench.insertSummaryTable();
+};
+
+function runBench() { 
+    bench.runBench(50);
+    bench.insertSummaryTable();
+};
 
 function runDirect() { bench.runTest("valueDirect"); };
 
