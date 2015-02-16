@@ -1,109 +1,136 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	  <title>Testing $.each performances.</title>
-	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>Testing $.each performances.</title>
+            <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+            <script src="./js/mesure-kit.js"></script>
 	</head>
 
 <body>
 
-<p>Looping through DOM element and replacing value.</p>
+    <section class="container">
+        
+        <h1>Each compared to native for loop</h1>
+        
+        <p>Looping through DOM element and replacing value.</p>
 
-<button onclick="javascript: runTest();" type="button" >Run test</button>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <button class="btn btn-primary" onclick="runTest()">Run all</button>
+                <button class="btn btn-warning" onclick="runBench()">Run a bench</button>
+            </div>
+        </div>
 
-<h1>DOM Transformation</h1>
+    </section>
+    
+    <section class="container">
+        <h2>Tests</h2>
+        
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th colspan="2"><h3>DOM Transformation</h3></th>
+                </tr>
 
-<h2>$.each()</h2>
+                <tr>
+                    <th>$.each()</th>
+                    <td>Duration was: <span id="jQDuration-DOM">(not run)</span>.</td>
+                </tr>
 
-<p>Duration was: <span id="jQDuration">(not run)</span>.</p>
+                <tr>
+                    <th>Native <tt>for</tt> loop</th>
+                    <td>Duration was: <span id="jsDuration-DOM">(not run)</span>.</td>
+                </tr>
 
-<h2>Native <tt>for</tt> loop</h2>
+                <tr>
+                    <th colspan="2"><h3>Simple loop</h3></th>
+                </tr>
 
-<p>Duration was: <span id="jsDuration">(not run)</span>.</p>
+                <tr>
+                    <th>$.each()</th>
+                    <td>Duration was: <span id="jQDuration-loop">(not run)</span>.</td>
+                </tr>
+
+                <tr>
+                    <th>Native <tt>for</tt> loop</th>
+                    <td>Duration was: <span id="jsDuration-loop">(not run)</span>.</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </section>
 
 
-<h1>Simple loop</h1>
+    <section class="container">
+        <h2>Summary</h2>
+        
+        <section id="summary"></section>
 
-<h2>$.each()</h2>
-
-<p>Duration was: <span id="jQDuration2">(not run)</span>.</p>
-
-<h2>Native <tt>for</tt> loop</h2>
-
-<p>Duration was: <span id="jsDuration2">(not run)</span>.</p>
-
-
-<div id="placeholder" >
-</div>
+    </section>
+    
+    <!-- Used by tests. -->
+    <div id="placeholder" ></div>
 
 </body>
 
 <script>
 
-function chronoTime(destId, fn) {
-  var $dest = $('#'+destId);
-  
-  $dest.html('...');
-  var beginTS  = new Date().getTime();
-  
-  fn();
-  
-  var endTS = new Date().getTime();
-  
-  var duration = endTS - beginTS;
-  
-  $dest.html(duration + ' ms');
-}
+var bench = new Bench({ nbLoop: 10000, summaryId: "summary" });
 
+var setupTest = function() {
+  // Create some DOM elements to loop on
+  var $placeholder = $('#placeholder');
+  $placeholder.html('');
+  for ( var idx = 0 ; idx < 1000 ; ++idx ) {
+	$placeholder.append("<div>"+idx+"</div>");
+  }
+};
 
-function jqTestDOM() {
+bench.addTest('jQDuration-DOM', function() { 
 	var $list = $('#placeholder > div');
 
 	$.each($list, function(idx) {
 		var $this = $( this );
 		$this.html(idx);
 	});
-};
+});
 
-function jsTestDOM() {
+bench.addTest('jsDuration-DOM', function() { 
 	var $list = $('#placeholder > div');
 
 	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
 		$( $list[ idx ] ).html(idx);
 	}
-};
+});
 
-function jqTestSimple() {
+bench.addTest('jQDuration-loop', function() { 
 	var $list = $('#placeholder > div');
 
 	$.each($list, function() {
 		$(this).height();
 	});
-};
+});
 
-function jsTestSimple() {
+bench.addTest('jsDuration-loop', function() { 
 	var $list = $('#placeholder > div');
 
 	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
 		$( $list[ idx ] ).height();
 	}
-};
-
+});
 
 
 function runTest() {
-  // Create some DOM elements to loop on
-  var $placeholder = $('#placeholder');
-  $placeholder.html('');
-  for ( var idx = 0 ; idx < 10000 ; ++idx ) {
-	$placeholder.append("<div>"+idx+"</div>");
-  }
+  bench.runAllTests();
+  bench.insertSummaryTable();
+}
   
-  chronoTime('jQDuration', jqTestDOM);
-  chronoTime('jsDuration', jsTestDOM);
-  chronoTime('jQDuration2', jqTestSimple);
-  chronoTime('jsDuration2', jsTestSimple);
+function runBench() {
+  bench.runBench(10);
+  bench.insertSummaryTable();
 }
   
 </script>
