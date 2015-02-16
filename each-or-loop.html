@@ -80,7 +80,7 @@
 
 var bench = new Bench({ nbLoop: 10000, summaryId: "summary" });
 
-var setupTest = function() {
+var setupTestFn = function() {
   // Create some DOM elements to loop on
   var $placeholder = $('#placeholder');
   $placeholder.html('');
@@ -96,7 +96,9 @@ bench.addTest('jQDuration-DOM', function() {
 		var $this = $( this );
 		$this.html(idx);
 	});
-});
+    },
+    setupTestFn
+    );
 
 bench.addTest('jsDuration-DOM', function() { 
 	var $list = $('#placeholder > div');
@@ -104,7 +106,9 @@ bench.addTest('jsDuration-DOM', function() {
 	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
 		$( $list[ idx ] ).html(idx);
 	}
-});
+    },
+    setupTestFn
+    );
 
 bench.addTest('jQDuration-loop', function() { 
 	var $list = $('#placeholder > div');
@@ -112,7 +116,9 @@ bench.addTest('jQDuration-loop', function() {
 	$.each($list, function() {
 		$(this).height();
 	});
-});
+    },
+    setupTestFn
+    );
 
 bench.addTest('jsDuration-loop', function() { 
 	var $list = $('#placeholder > div');
@@ -120,7 +126,9 @@ bench.addTest('jsDuration-loop', function() {
 	for ( var idx = 0 ; idx < $list.length ; ++idx ) {
 		$( $list[ idx ] ).height();
 	}
-});
+    },
+    setupTestFn
+    );
 
 
 function runTest() {
