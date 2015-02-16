@@ -1,181 +1,149 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	  <title>Testing $('<div>') performances.</title>
-	  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-	  <script src="js/mesure-kit.js"></script>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>Testing $('<div>') performances.</title>
+            <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+            <script src="js/mesure-kit.js"></script>
 	</head>
 
 <body>
 
-<h2>Test scenarios</h2>
+    <section class="container">
+        
+        <h1>DOM creation with jQuery and DOM-API compared</h1>
+        <p>Simple test for div creation performances in jQuery.</p>
 
-<p>Simple test for div creation performances in jQuery.</p>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <button class="btn btn-primary" onclick="runAll()">Run all</button>
+                <button class="btn btn-warning" onclick="runBench()">Run a bench</button>
+            </div>
+        </div>
 
-<button onclick="runAll()">Run all</button>
-<button onclick="runBench()">Run bench</button>
+    </section>
+    
+    <section class="container">
+        <h2>Tests</h2>
+        
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>JavaScript creation</th>
+                    <td>Duration: <span id="js-single-node"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runJS()">Run</button></td>
+                </tr>
 
-<h3>JavaScript creation</h3>
+                <tr>
+                    <th>JavaScript with attributes creation</th>
+                    <td>Duration: <span id="js-node-with-attr"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runJSAttr()">Run</button></td>
+                </tr>
 
-<p><button onclick="runJS()">Run</button>
-	Duration: <span id="valueJS"></span>
-</p>
+                <tr>
+                    <th>Simple creation</th>
+                    <td>Duration: <span id="jQ-single-node"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runSimple()">Run</button></td>
+                </tr>
 
+                <tr>
+                    <th>Creation with inline attributes</th>
+                    <td>Duration: <span id="jQ-node-attr-in-string"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runInlineAttr()">Run</button></td>
+                </tr>
 
-<h3>JavaScript with attributes creation</h3>
-
-<p><button onclick="runJSAttr()">Run</button> 
-	Duration: <span id="valueJSAttr"></span>
-</p>
-
-
-<h3>Simple creation</h3>
-
-<p><button onclick="runSimple()">Run</button>
-	Duration: <span id="valueDirect"></span>
-</p>
-
-
-<h3>Creation with inline attributes</h3>
-
-<p><button onclick="runInlineAttr()">Run</button>
-	Duration: <span id="valueInlineAttr"></span>
-</p>
-
-
-<h3>Creation with structured attributes</h3>
-
-<p><button onclick="runStructuredAttr()">Run</button>
-	Duration: <span id="valueStructuredAttr"></span>
-</p>
+                <tr>
+                    <th>Creation with structured attributes</th>
+                    <td>Duration: <span id="jQ-node-attr-as-obj"></span></td>
+                    <td><button class="btn btn-xs btn-primary" onclick="runStructuredAttr()">Run</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
 
 
-<hr>
+    <section class="container">
+        <h2>Summary</h2>
+        
+        <section id="summary"></section>
 
-<h2>Results</h2>
-
-<table id="results">
-	<thead>
-		<tr>
-			<th>Run</th>
-			<th>JavaScript, no attribute</th>
-			<th>JavaScript, set attribute</th>
-			<th>jQuery, tag only</th>
-			<th>jQuery, attribute in tag</th>
-			<th>jQuery, attributes as object</th>
-		</tr>
-	</thead>
-	<tbody>
-	</tbody>
-</table>
-
-<hr>
-
-<div id="container"></div>
+    </section>
+    
+    <div id="container"></div>
 
 </body>
 
 <script>
 
-/** Add a row in the list of result values.
- */
-function recordResultSet(tableId, resultSet) {
-	var $tbody = $('tbody', "#"+tableId);
-	var nbRows = $('tr', $tbody).length;
-	
-	var rowIdx = 1+nbRows;
-	var $row = $('<tr>');
-	
-	var $countCell = $('<th>'); 
-	$countCell.html(rowIdx);
-	
-	$row.append($countCell);
-	
-	for ( var idx = 0 ; idx < resultSet.length ; ++idx ) {
-		var $cell = $('<td>');
-		$cell.html( resultSet[idx] );
-		$row.append($cell);
-	}
-	
-	$tbody.append($row);
-};
-
 
 
 // TESTS
 
-var runCount = 0;
+var bench = new Bench({ nbLoop: 10000, summaryId: "summary" });
 
-function runAll() {
-	var resultSet = [
-		runJS(),
-		runJSAttr(),
-		runSimple(),
-		runInlineAttr(),
-		runStructuredAttr()
-	];
-	
-	recordResultSet('results', resultSet);
-}
-
-function runBench() {
-	for ( var run = 0 ; run < 50 ; ++run ) {
-		runAll();
-	}
-};
+var elem = []; // Used by all tests
 
 // Root container to create elements
 var $container = $('#container');
-var nbLoop = 10000;
 
-function runJS() {
-	$container.empty();
-	var elem = [];
-	return chronoTime('valueJS', function() { 
-		var newDiv = document.createElement('div');
-		elem.push(newDiv);
-	}, nbLoop);
+var setupFn = function() {
+    $container.empty();
+    elem = [];
+};
+
+
+bench.addTest('js-single-node', function() { 
+    var newDiv = document.createElement('div');
+    elem.push(newDiv);
+});
+
+bench.addTest('js-node-with-attr', function() { 
+    var newDiv = document.createElement('div');
+    newDiv.setAttribute('class', 'dummy');
+    elem.push(newDiv);
+});
+
+bench.addTest('jQ-single-node', function() { 
+    var $newDiv = $("<div>");
+    elem.push($newDiv);
+});
+
+bench.addTest('jQ-node-attr-in-string', function() { 
+    var $newDiv = $("<div class='dummy'>");
+    elem.push($newDiv);
+});
+
+bench.addTest('jQ-node-attr-as-obj', function() { 
+    var $newDiv = $("<div>", { 
+            class: 'dummy' 
+    });
+    elem.push($newDiv);
+});
+
+
+var runCount = 0;
+
+function runAll() {
+    bench.runAllTests();
+    bench.insertSummaryTable();
 }
 
-function runJSAttr() {
-	$container.empty();
-	var elem = [];
-	return chronoTime('valueJSAttr', function() { 
-		var newDiv = document.createElement('div');
-		newDiv.setAttribute('class', 'dummy');
-		elem.push(newDiv);
-	}, nbLoop);
-}
+function runBench() {
+    bench.runBench(50);
+    bench.insertSummaryTable();
+};
 
-function runSimple() {
-	$container.empty();
-	var elem = [];
-	return chronoTime('valueDirect', function() { 
-		var $newDiv = $("<div>");
-		elem.push($newDiv);
-	}, nbLoop);
-}
+function runJS() { bench.runTest("js-single-node"); }
 
-function runInlineAttr() {
-	$container.empty();
-	var elem = [];
-	return chronoTime('valueInlineAttr', function() { 
-		var $newDiv = $("<div class='dummy'>");
-		elem.push($newDiv);
-	}, nbLoop);
-}
+function runJSAttr() { bench.runTest("js-node-with-attr"); }
 
-function runStructuredAttr() {
-	$container.empty();
-	var elem = [];
-	return chronoTime('valueStructuredAttr', function() { 
-		var $newDiv = $("<div>", { 
-			class: 'dummy' 
-		});
-		elem.push($newDiv);
-	}, nbLoop);
-}
+function runSimple() { bench.runTest("jQ-single-node"); }
+
+function runInlineAttr() { bench.runTest("jQ-node-attr-in-string"); }
+
+function runStructuredAttr() { bench.runTest("jQ-node-attr-as-obj"); }
 
 
 </script>
