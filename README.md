@@ -8,11 +8,11 @@ The goal was to identify some possible source for performance bottleneck in some
 
 Current set of bench are covering three core features:
 
-- [Test 1](./each-or-loop.html) 
+- [Test 1](./raw/master/each-or-loop.html)
     Differences between `each()` and native `for` loop.
-- [Test 2](./perf-proxy.html)
+- [Test 2](./raw/master/perf-proxy.html)
     The cost of `$.proxy()` compared to a much simplier JavaScript closure.
-- [Test 3](./perf-div-creation.html)
+- [Test 3](./raw/master/perf-div-creation.html)
     The cost of DOM element creation in jQuery tool compared to 
 
 This is clearly not a benchmark for jQuery. The idea is to find clue to select the proper API regarding the current implement context and constrains.
